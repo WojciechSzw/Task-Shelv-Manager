@@ -1,0 +1,253 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="ShelfManager" Id="{6cb382e6-6f10-4a3a-984f-4bcc52c8f303}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK ShelfManager
+VAR_INPUT
+	ErrorReset : BOOL;
+END_VAR
+VAR_OUTPUT
+	ErrorSameID : BOOL;
+	ErrorNotEnoghPlace : BOOL;
+	ErrorNothingToBeTakenOut : BOOL;
+	ErrorNotFound : BOOL;
+	ErrorCantStoreWithoutPartID : BOOL;
+	ErrorSerchWithoutPartID : BOOL;
+	ErrorSpaceDoesNotExist : BOOL;
+END_VAR
+VAR CONSTANT
+	NUMBEROFSCPACES : USINT := 42;
+	COLUMNS : USINT := 7;
+	ROWS : USINT := 6;
+END_VAR
+VAR
+	
+	init : BOOL := TRUE;
+	x : USINT;
+	y : USINT;	
+	z : USINT;
+	Spaces : ARRAY [0..NUMBEROFSCPACES - 1] OF Space;	
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF init THEN
+	FOR x := 0 TO (ROWS - 1) DO
+		FOR y := 0 TO (COLUMNS - 1) DO
+			Spaces[z].Column := y;
+			Spaces[z].Row := x;
+			Spaces[z].partID := '';
+			z := z + 1;
+		END_FOR
+
+	END_FOR
+	init := FALSE;
+END_IF
+
+
+IF ErrorReset THEN
+	ErrorSameID := FALSE;
+	ErrorNotEnoghPlace := FALSE;
+	ErrorNothingToBeTakenOut := FALSE;
+	ErrorNotFound := FALSE;
+	ErrorCantStoreWithoutPartID := FALSE;
+	ErrorSerchWithoutPartID := FALSE;
+	ErrorSpaceDoesNotExist := FALSe;
+END_IF
+
+]]></ST>
+    </Implementation>
+    <Method Name="FindPart" Id="{05bfc486-78f5-46d9-ae41-e2149d3c5ac3}">
+      <Declaration><![CDATA[METHOD FindPart : BOOL;
+VAR_INPUT
+	SerchingPartID	: PartID;
+END_VAR
+VAR_OUTPUT
+	FoundPart : Space;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FindPart := FALSE;
+IF (SerchingPartID = '') THEN
+	ErrorSerchWithoutPartID := TRUE;
+	RETURN;
+END_IF;
+
+FOR x := 0 TO (NUMBEROFSCPACES - 1) DO
+	IF Spaces[x].partID = SerchingPartID  THEN
+		FoundPart := Spaces[x];
+		FindPart := TRUE;
+		RETURN;
+	END_IF
+	IF x = (NUMBEROFSCPACES - 1) THEN
+		FindPart := FALSE;
+		RETURN;
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="NextFreeSpace" Id="{702f7696-4367-4442-bc00-8d5b5208c4f7}">
+      <Declaration><![CDATA[PROPERTY NextFreeSpace : Space]]></Declaration>
+      <Get Name="Get" Id="{ccf7b35b-3240-4295-8e7a-d6a3a7f2b4c5}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[FOR x := 0 TO (NUMBEROFSCPACES - 1) DO
+	IF Spaces[x].partID = '' THEN
+		NextFreeSpace := Spaces[x];
+		RETURN;
+	ELSIF x = NUMBEROFSCPACES - 1 THEN
+		ErrorNotEnoghPlace := TRUE;	
+		RETURN;	
+	END_IF
+END_FOR]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="NextOccupiedSpace" Id="{3e212d41-2265-499d-a71b-e29a48145454}">
+      <Declaration><![CDATA[PROPERTY NextOccupiedSpace : Space
+]]></Declaration>
+      <Get Name="Get" Id="{97939dc7-1afa-4d3c-9628-9fa75401eae3}">
+        <Declaration><![CDATA[]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[FOR x := 0 TO (NUMBEROFSCPACES - 1) DO
+	IF NOT (Spaces[x].partID = '') THEN
+		NextOccupiedSpace := Spaces[x];
+		RETURN;
+	ELSIF x = (NUMBEROFSCPACES - 1) THEN
+		ErrorNothingToBeTakenOut := TRUE;	
+		RETURN;	
+	END_IF
+END_FOR]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="RemoveByID" Id="{183a6651-4bf9-425f-ad05-52fdff5ea27c}">
+      <Declaration><![CDATA[METHOD RemoveByID : BOOL
+VAR_INPUT
+	removedPartID	: PartID;
+END_VAR
+VAR	
+	foundPart : Space;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF FindPart(SerchingPartID := removedPartID,FoundPart => foundPart)THEN
+	RemoveByID := RemovePart(column := foundPart.Column,row := foundPart.Row);
+ELSE
+	RemoveByID := FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RemoveFIFO" Id="{964ecf5d-4ab2-41af-b4c9-a8def4edd935}">
+      <Declaration><![CDATA[METHOD RemoveFIFO : BOOL
+VAR_INPUT
+END_VAR
+VAR	
+	removedFifoSpace : Space;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemoveFIFO := FALSE;
+
+removedFifoSpace := NextOccupiedSpace;
+IF ErrorNothingToBeTakenOut THEN
+	RETURN;
+END_IF
+
+RemoveFIFO := RemovePart(column := removedFifoSpace.Column, row := removedFifoSpace.Row);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RemovePart" Id="{dcca1800-9a70-480c-bb67-ec42ba49aa72}">
+      <Declaration><![CDATA[METHOD RemovePart : BOOL
+VAR_INPUT
+	column : USINT;
+	row	: USINT;
+END_VAR
+VAR
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemovePart := FALSE;
+
+IF column > 6 OR row > 5 THEN
+	ErrorSpaceDoesNotExist := TRUE;
+	RETURN;
+END_IF
+
+FOR x := 0 TO (NUMBEROFSCPACES - 1) DO
+	IF Spaces[x].Column = column AND Spaces[x].Row = row THEN
+		IF (Spaces[x].partID = '') THEN
+			ErrorNothingToBeTakenOut := TRUE;
+			RETURN;
+		ELSE
+			FOR y := x + 1 TO (NUMBEROFSCPACES - 1) DO
+				Spaces[y-1] := Spaces[y];
+			END_FOR
+			Spaces[(NUMBEROFSCPACES - 1)].Column := column;
+			Spaces[(NUMBEROFSCPACES - 1)].Row := row;
+			Spaces[(NUMBEROFSCPACES - 1)].partID := '';
+			RemovePart := TRUE;
+			RETURN;
+		END_IF
+	END_IF
+END_FOR]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StoreFIFO" Id="{4b27e7bb-6e51-47e0-a6e5-9a603ac19d42}">
+      <Declaration><![CDATA[(*check if robot is at position of "next shelf".*)
+METHOD StoreFIFO : BOOL
+VAR_INPUT
+	storedFifoID : PartID;
+END_VAR
+VAR	
+	storeFifoSpace : Space;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[StoreFIFO := false;
+
+storeFifoSpace := NextFreeSpace;
+IF ErrorNotEnoghPlace THEN
+	RETURN;
+END_IF
+
+storeFifoSpace.partID := storedFifoID;
+
+StoreFIFO := StorePart(storedPart := storeFifoSpace);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StorePart" Id="{35cbab21-bf62-4c43-8b7f-4d81730ae33e}">
+      <Declaration><![CDATA[METHOD StorePart : BOOL
+VAR_INPUT
+	storedPart : Space;
+END_VAR
+VAR
+
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[StorePart := FALSE;	
+
+IF storedPart.Column > 6 OR storedPart.Row > 5 THEN
+	ErrorSpaceDoesNotExist := TRUE;
+	RETURN;
+ELSIF (storedPart.partID = '') THEN
+	ErrorCantStoreWithoutPartID := TRUE;
+	RETURN;
+ELSIF FindPart(SerchingPartID := storedPart.partID) THEN
+	ErrorSameID := TRUE;
+	RETURN;
+END_IF	
+	
+FOR x := 0 TO (NUMBEROFSCPACES - 1) DO
+	IF Spaces[x].Column = storedPart.Column AND Spaces[x].Row = storedPart.Row THEN
+		FOR y := x + 1 TO (NUMBEROFSCPACES - 1) DO
+			Spaces[y-1] := Spaces[y];
+		END_FOR
+		Spaces[(NUMBEROFSCPACES - 1)] := storedPart;
+		StorePart := TRUE;
+		RETURN;				
+	END_IF
+END_FOR
+
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

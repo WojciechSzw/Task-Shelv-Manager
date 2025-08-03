@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="Space" Id="{b40f7efc-e092-460b-ae27-2957ed094bef}">
+    <Declaration><![CDATA[TYPE Space :
+STRUCT
+	Column : USINT;
+	Row : USINT;
+	{attribute 'TcEncoding':='UTF-8'}
+	partID : PartID;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

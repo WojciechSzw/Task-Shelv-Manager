@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="MAIN" Id="{b248a891-e89a-4c70-a7b3-2582197513af}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM MAIN
+VAR
+		
+	manager : ShelfManager;
+	Reset : BOOL;
+	M : USINT;
+	testSpace : Space;
+	testID : PartID;
+	
+	ErrorSameID : BOOL;
+	ErrorNotEnoghPlace : BOOL;
+	ErrorNothingToBeTakenOut : BOOL;
+	ErrorNotFound : BOOL;
+	ErrorCantStoreWithoutPartID : BOOL;
+	ErrorSerchWithoutPartID : BOOL;
+	ErrorSpaceDoesNotExist : BOOL;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[manager(
+	ErrorNotFound => ErrorNotFound,
+	ErrorSameID => ErrorSameID,
+	ErrorNothingToBeTakenOut => ErrorNothingToBeTakenOut,
+	ErrorNothingToBeTakenOut => ErrorNothingToBeTakenOut,
+	ErrorReset := Reset,
+	ErrorCantStoreWithoutPartID => ErrorCantStoreWithoutPartID,
+	ErrorSerchWithoutPartID => ErrorSerchWithoutPartID,
+	ErrorSpaceDoesNotExist => ErrorSpaceDoesNotExist
+);
+
+CASE M OF
+	1:
+		manager.FindPart(
+			SerchingPartID := testID,
+			FoundPart => testSpace
+		);
+		M := 0;		
+	2:
+		testSpace := manager.NextFreeSpace;
+		M := 0;		
+	3: 
+		testSpace := manager.NextOccupiedSpace;
+		M := 0;	
+	4:
+	 	manager.RemoveByID(removedPartID := testID);
+		M := 0;
+	5: 
+		manager.RemoveFIFO();
+		M := 0;
+	6:
+		manager.RemovePart(
+			column := testSpace.Column,
+			row := testSpace.Row
+		);
+		M := 0;		
+	7: 
+		manager.StoreFIFO(storedFifoID := testID);
+		M := 0;
+	8: 
+		manager.StorePart(storedPart := testSpace);
+		M := 0;
+	
+END_CASE
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
