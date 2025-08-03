@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1">
-  <DUT Name="PartID" Id="{884606e9-013f-465f-9983-af93a481b544}">
-    <Declaration><![CDATA[TYPE PartID : STRING;
-
-END_TYPE
-]]></Declaration>
-  </DUT>
-</TcPlcObject>

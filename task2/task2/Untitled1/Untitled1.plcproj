@@ -18,10 +18,10 @@
     <LibraryReferences>{fa467c8e-88e8-44fd-8521-98e01661bfad}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DUTs\PartID.TcDUT">
+    <Compile Include="DUTs\Space.TcDUT">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DUTs\Space.TcDUT">
+    <Compile Include="DUTs\Weight.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PlcTask.TcTTO">
@@ -31,6 +31,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\ShelfManager.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\Tests.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <POU Name="Tests" Id="{4322dbd8-f220-4b37-b92c-fb1aa81ae21a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Tests
+VAR_INPUT
+	Manager : ShelfManager;
+END_VAR
+VAR_OUTPUT
+	TestFullStoringExplicit : BOOL;
+	TestRemovingExplicit : BOOL;
+	TestRemoveAllFifo : BOOL;
+	TestStoreFifo : BOOL;
+
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Manager();
+TestFullStoringExplicit := FullStoringExplicit();
+TestRemovingExplicit := RemovingExplicit();
+TestRemoveAllFifo := RemoveAllFifo();
+TestStoreFifo := StoreFifo();
+
+
+]]></ST>
+    </Implementation>
+    <Method Name="FullStoringExplicit" Id="{eb6e817a-2c8c-468c-9ce3-3b9cf9d1c600}">
+      <Declaration><![CDATA[METHOD FullStoringExplicit : BOOL
+VAR_INPUT
+END_VAR
+VAR	
+	x : SINT;
+	y : SINT;
+	z : SINT;
+	space : Space;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FullStoringExplicit := FALSE;
+
+FOR x := 0 TO Manager.NOFROWS - 1 DO
+	FOR y := 0 TO Manager.NOFCOLUMNS - 1 DO
+		z := z+1;
+		space.Column := y;
+		space.Row := x;
+		space.PartID := INT_TO_STRING(z);
+		space.Weight := Weight.Light;
+		Manager.StoreExplicit(storedPart := space);
+	END_FOR	
+END_FOR
+
+IF NOT(Manager.Spaces[0].PartID = '1')THEN
+	RETURN; 
+ELSIF NOT (Manager.Spaces[Manager.NOFSPACES - 1].PartID = INT_TO_STRING(Manager.NOFSPACES)) THEN
+	RETURN;
+END_IF
+
+FullStoringExplicit := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RemoveAllFifo" Id="{749ec9fb-6f46-48ff-a808-f95dbac7dcfb}">
+      <Declaration><![CDATA[METHOD RemoveAllFifo : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	n : SINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemoveAllFifo := FALSE;
+
+IF NOT TestRemovingExplicit THEN
+	RETURN;
+END_IF
+
+FOR n := 2 TO Manager.NOFSPACES DO
+	IF NOT (Manager.Spaces[0].PartID = SINT_TO_STRING(n)) THEN
+		RETURN;
+	END_IF
+	Manager.RemoveFIFO();
+END_FOR
+
+RemoveAllFifo := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RemovingExplicit" Id="{93fda233-019f-4250-a4fe-660fb5408449}">
+      <Declaration><![CDATA[METHOD RemovingExplicit : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[RemovingExplicit := FALSE;
+
+IF NOT TestFullStoringExplicit THEN
+	RETURN;
+END_IF
+
+IF NOT Manager.RemoveExplicit(Column := 0, Row := 0) THEN
+	RETURN;
+ELSIF NOT (Manager.Spaces[Manager.NOFSPACES - 1].PartID = '') THEN
+	RETURN;
+ELSIF NOT (Manager.Spaces[0].PartID = '2') THEN
+	RETURN;
+END_IF
+
+RemovingExplicit := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StoreFifo" Id="{9bd32063-c357-4b17-9d62-9a87ee38fde0}">
+      <Declaration><![CDATA[METHOD StoreFifo : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	n : SINT;
+	weight : Weight := Light;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[StoreFifo := FALSE;
+
+IF NOT TestRemoveAllFifo THEN
+	RETURN;
+END_IF
+
+FOR n := 0 TO Manager.NOFSPACES DO
+	IF weight = Light THEN
+		weight := Heavy;
+	ELSE 
+		weight := Light;
+	END_IF
+	Manager.StoreFIFO(
+		storedFifoID := SINT_TO_STRING(n),
+		storedFifoWeight := weight
+	);
+END_FOR
+
+IF NOT Manager.ErrorNotEnoghPlace THEN
+	RETURN;
+END_IF
+
+StoreFifo := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

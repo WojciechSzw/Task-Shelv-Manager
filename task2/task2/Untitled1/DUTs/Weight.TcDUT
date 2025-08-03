@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1">
+  <DUT Name="Weight" Id="{55b6e378-65c8-43c8-8912-8c46830356b4}">
+    <Declaration><![CDATA[TYPE Weight : (Empty, Light, Heavy);
+END_TYPE;]]></Declaration>
+  </DUT>
+</TcPlcObject>

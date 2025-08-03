@@ -3,10 +3,10 @@
   <DUT Name="Space" Id="{b40f7efc-e092-460b-ae27-2957ed094bef}">
     <Declaration><![CDATA[TYPE Space :
 STRUCT
-	Column : USINT;
-	Row : USINT;
-	{attribute 'TcEncoding':='UTF-8'}
-	partID : PartID;
+	Column : SINT;
+	Row : SINT;
+	PartID : STRING;
+	Weight : Weight;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

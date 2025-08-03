@@ -6,17 +6,19 @@ VAR
 		
 	manager : ShelfManager;
 	Reset : BOOL;
-	M : USINT;
-	testSpace : Space;
-	testID : PartID;
+	FuncTest : USINT;
+	space : Space;
 	
 	ErrorSameID : BOOL;
 	ErrorNotEnoghPlace : BOOL;
 	ErrorNothingToBeTakenOut : BOOL;
 	ErrorNotFound : BOOL;
-	ErrorCantStoreWithoutPartID : BOOL;
+	ErrorCantStoreWithoutProperties : BOOL;
 	ErrorSerchWithoutPartID : BOOL;
 	ErrorSpaceDoesNotExist : BOOL;
+	
+	doTests : BOOL;
+	tests : Tests;
 	
 END_VAR
 ]]></Declaration>
@@ -27,45 +29,47 @@ END_VAR
 	ErrorNothingToBeTakenOut => ErrorNothingToBeTakenOut,
 	ErrorNothingToBeTakenOut => ErrorNothingToBeTakenOut,
 	ErrorReset := Reset,
-	ErrorCantStoreWithoutPartID => ErrorCantStoreWithoutPartID,
+	ErrorCantStoreWithoutProperties => ErrorCantStoreWithoutProperties,
 	ErrorSerchWithoutPartID => ErrorSerchWithoutPartID,
 	ErrorSpaceDoesNotExist => ErrorSpaceDoesNotExist
 );
 
-CASE M OF
+CASE FuncTest OF
 	1:
 		manager.FindPart(
-			SerchingPartID := testID,
-			FoundPart => testSpace
-		);
-		M := 0;		
+			SerchingPartID := space.PartID,
+			FoundPart => space
+		);	
 	2:
-		testSpace := manager.NextFreeSpace;
-		M := 0;		
-	3: 
-		testSpace := manager.NextOccupiedSpace;
-		M := 0;	
-	4:
-	 	manager.RemoveByID(removedPartID := testID);
-		M := 0;
-	5: 
+		space := manager.NextFreeSpaceLight;	
+	3:
+		space := manager.NextFreeSpaceHeavy;
+	4: 
+		space := manager.NextOccupiedSpace;
+	5:
+	 	manager.RemoveByID(removedPartID := space.PartID);
+	6: 
 		manager.RemoveFIFO();
-		M := 0;
-	6:
-		manager.RemovePart(
-			column := testSpace.Column,
-			row := testSpace.Row
-		);
-		M := 0;		
-	7: 
-		manager.StoreFIFO(storedFifoID := testID);
-		M := 0;
+	7:
+		manager.RemoveExplicit(
+			column := (space.Column),
+			row := (space.Row)
+		);	
 	8: 
-		manager.StorePart(storedPart := testSpace);
-		M := 0;
+		manager.StoreFIFO(
+			storedFifoID := space.PartID,
+			storedFifoWeight := space.Weight
+		);
+	9: 
+		manager.StoreExplicit(storedPart := space);
 	
 END_CASE
+FuncTest := 0;
 
+IF doTests THEN
+	tests();
+	doTests := FALSE;
+END_IF
 ]]></ST>
     </Implementation>
   </POU>
